@@ -24,7 +24,6 @@ from FreeCAD import Vector
 
 from boxcreator import boxcreator
 
-
 class BoxcreatorDialog():
     """Show a dialog for BoxCreator"""
     def __init__(self):
@@ -44,7 +43,7 @@ class BoxcreatorDialog():
         boxWidth = self.form.doubleSpinBoxWidth.value()
         boxHeight = self.form.doubleSpinBoxHeight.value()
         boxLength = self.form.doubleSpinBoxLength.value()
-        notchWidth = self.form.doubleSpinBoxNotchWidth.value()
+        sameNotchWidth = self.form.doubleSpinBoxNotchWidth.value()
         materialWidth = self.form.doubleSpinBoxMaterialWidth.value()
         drawSides = [self.form.checkBoxTop.isChecked(),
                      self.form.checkBoxBottom.isChecked(),
@@ -60,12 +59,20 @@ class BoxcreatorDialog():
                           self.form.overhangBotRight.value(),
                           self.form.overhangBotFront.value(),
                           self.form.overhangBotBack.value()]
+        perAxisNotchControl = self.form.perAxisNotchControl.isChecked()
+        widthNotchWidth = self.form.doubleSpinBoxWidthNotchWidth.value()
+        heightNotchWidth = self.form.doubleSpinBoxHeightNotchWidth.value()
+        lengthNotchWidth = self.form.doubleSpinBoxLengthNotchWidth.value()
+        if (perAxisNotchControl):
+            notchWidthTuple = [widthNotchWidth, lengthNotchWidth, heightNotchWidth]
+        else:
+            notchWidthTuple = [sameNotchWidth, sameNotchWidth, sameNotchWidth]
         if (boxWidth == 0) or (boxHeight == 0) or (boxLength == 0):
             app.Console.PrintError('Error! None of the values can be 0!')
             # we bail out without doing anything
             return
 
-        box = boxcreator.create_box(materialWidth, boxWidth, boxHeight, boxLength, notchWidth, drawSides, overhangTop, overhangBottom, app.activeDocument())
+        box = boxcreator.create_box(materialWidth, boxWidth, boxHeight, boxLength, notchWidthTuple, drawSides, overhangTop, overhangBottom, app.activeDocument())
         gui.Selection.clearSelection()
         gui.Selection.addSelection(box)
         gui.SendMsgToActiveView('ViewFit')
@@ -81,7 +88,7 @@ class BoxcreatorDialog():
 
     def createCompartment(self, direction):
         box = gui.Selection.getSelection()
-        notchWidth = self.form.doubleSpinBoxNotchWidth.value()
+        sameNotchWidth = self.form.doubleSpinBoxNotchWidth.value()
         materialWidth = self.form.doubleSpinBoxMaterialWidth.value()
         drawSides = [self.form.checkBoxTop.isChecked(),
                      self.form.checkBoxBottom.isChecked(),
@@ -90,8 +97,16 @@ class BoxcreatorDialog():
                      self.form.checkBoxFront.isChecked(),
                      self.form.checkBoxBack.isChecked()]
         offset = self.form.compartmentOffset.value()
+        perAxisNotchControl = self.form.perAxisNotchControl.isChecked()
+        widthNotchWidth = self.form.doubleSpinBoxWidthNotchWidth.value()
+        heightNotchWidth = self.form.doubleSpinBoxHeightNotchWidth.value()
+        lengthNotchWidth = self.form.doubleSpinBoxLengthNotchWidth.value()
+        if (perAxisNotchControl):
+            notchWidthTuple = [widthNotchWidth, lengthNotchWidth, heightNotchWidth]
+        else:
+            notchWidthTuple = [sameNotchWidth, sameNotchWidth, sameNotchWidth]
         boxsize = Vector(self.form.doubleSpinBoxWidth.value(), self.form.doubleSpinBoxLength.value(), self.form.doubleSpinBoxHeight.value())
-        compartment = boxcreator.create_compartment(box, direction, offset, materialWidth, notchWidth, drawSides, boxsize)
+        compartment = boxcreator.create_compartment(box, direction, offset, materialWidth, notchWidthTuple, drawSides, boxsize)
         if compartment:
             gui.Selection.clearSelection()
             gui.Selection.addSelection(compartment)

@@ -6,7 +6,7 @@ import BOPTools.JoinFeatures
 
 def create_box(materialWidth,
                boxWidth, boxHeight, boxLength,
-               notchWidth,
+               notchWidthTuple,
                drawSides=[True, True, True, True, True, True],
                overhangTop=[0.0, 0.0, 0.0, 0.0],
                overhangBottom=[0.0, 0.0, 0.0, 0.0],
@@ -33,29 +33,29 @@ def create_box(materialWidth,
     boxobjects = []
 
     if drawSides[1]:
-        side1 = draw_top_bottom(doc, 'bottom', materialWidth, boxWidth, boxLength, notchWidth, drawSides, overhangBottom)
+        side1 = draw_top_bottom(doc, 'bottom', materialWidth, boxWidth, boxLength, notchWidthTuple, drawSides, overhangBottom)
         boxobjects.append(side1)
 
     if drawSides[0]:
-        side2 = draw_top_bottom(doc, 'top', materialWidth, boxWidth, boxLength, notchWidth, drawSides, overhangTop)
+        side2 = draw_top_bottom(doc, 'top', materialWidth, boxWidth, boxLength, notchWidthTuple, drawSides, overhangTop)
         side2.Placement.Base.z += boxHeight - materialWidth
         boxobjects.append(side2)
 
     if drawSides[2]:
-        side3 = draw_left_right(doc, 'left', materialWidth, boxHeight, boxLength, notchWidth, drawSides)
+        side3 = draw_left_right(doc, 'left', materialWidth, boxHeight, boxLength, notchWidthTuple, drawSides)
         boxobjects.append(side3)
 
     if drawSides[3]:
-        side4 = draw_left_right(doc, 'right', materialWidth, boxHeight, boxLength, notchWidth, drawSides)
+        side4 = draw_left_right(doc, 'right', materialWidth, boxHeight, boxLength, notchWidthTuple, drawSides)
         Draft.move([side4], Vector(boxWidth - materialWidth, 0.0, 0.0), copy=False)
         boxobjects.append(side4)
 
     if drawSides[4]:
-        side5 = draw_front_back(doc, 'front', materialWidth, boxWidth, boxHeight, notchWidth, drawSides)
+        side5 = draw_front_back(doc, 'front', materialWidth, boxWidth, boxHeight, notchWidthTuple, drawSides)
         boxobjects.append(side5)
 
     if drawSides[5]:
-        side6 = draw_front_back(doc, 'back', materialWidth, boxWidth, boxHeight, notchWidth, drawSides)
+        side6 = draw_front_back(doc, 'back', materialWidth, boxWidth, boxHeight, notchWidthTuple, drawSides)
         Draft.move([side6], Vector(0.0, boxLength - materialWidth, 0.0), copy=False)
         boxobjects.append(side6)
 
@@ -66,7 +66,7 @@ def create_box(materialWidth,
     return comp1
 
 
-def draw_top_bottom(doc, partname, materialWidth, boxWidth, boxLength, notchWidth, drawSides=[True, True, True, True, True, True], overhang=[0.0, 0.0, 0.0, 0.0]):
+def draw_top_bottom(doc, partname, materialWidth, boxWidth, boxLength, notchWidthTuple, drawSides=[True, True, True, True, True, True], overhang=[0.0, 0.0, 0.0, 0.0]):
     """Create the top or bottom part of the box.
 
     Parameters
@@ -76,40 +76,43 @@ def draw_top_bottom(doc, partname, materialWidth, boxWidth, boxLength, notchWidt
     """
     lines = []
 
+    notchWidthX = notchWidthTuple[0]
+    notchWidthY = notchWidthTuple[1]
+    print("XY is {} {}".format(notchWidthX, notchWidthY))
     if overhang[2] > 0:
-        lines += _notch_holes(boxWidth, notchWidth, materialWidth, Vector(0, 0, 0), overhang[2], drawSides[4], overhang[0], overhang[1])
+        lines += _notch_holes(boxWidth, notchWidthX, materialWidth, Vector(0, 0, 0), overhang[2], drawSides[4], overhang[0], overhang[1])
     else:
-        lines.append(_notch_line(boxWidth, notchWidth, materialWidth, Vector(0, 0, 0), False, False, drawSides[4]))
+        lines.append(_notch_line(boxWidth, notchWidthX, materialWidth, Vector(0, 0, 0), False, False, drawSides[4]))
 
     if overhang[1] > 0:
-        lines2 = _notch_holes(boxLength, notchWidth, materialWidth, Vector(0, 0, 90), overhang[1], drawSides[3], overhang[2], overhang[2])
+        lines2 = _notch_holes(boxLength, notchWidthY, materialWidth, Vector(0, 0, 90), overhang[1], drawSides[3], overhang[2], overhang[2])
         for line in lines2:
             line.Placement.Base.x += boxWidth
             lines.append(line)
     else:
-        lines2 = _notch_line(boxLength, notchWidth, materialWidth, Vector(0, 0, 90), False, False, drawSides[3])
+        lines2 = _notch_line(boxLength, notchWidthY, materialWidth, Vector(0, 0, 90), False, False, drawSides[3])
         lines2.Placement.Base.x += boxWidth
         lines.append(lines2)
 
     if overhang[3] > 0:
-        lines3 = _notch_holes(boxWidth, notchWidth, materialWidth, Vector(0, 0, 180), overhang[3], drawSides[5], overhang[1], overhang[0])
+        lines3 = _notch_holes(boxWidth, notchWidthX, materialWidth, Vector(0, 0, 180), overhang[3], drawSides[5], overhang[1], overhang[0])
         for line in lines3:
             line.Placement.Base.x += boxWidth
             line.Placement.Base.y += boxLength
             lines.append(line)
     else:
-        lines3 = _notch_line(boxWidth, notchWidth, materialWidth, Vector(0, 0, 180), False, False, drawSides[5])
+        lines3 = _notch_line(boxWidth, notchWidthX, materialWidth, Vector(0, 0, 180), False, False, drawSides[5])
         lines3.Placement.Base.x += boxWidth
         lines3.Placement.Base.y += boxLength
         lines.append(lines3)
 
     if overhang[0] > 0:
-        lines4 = _notch_holes(boxLength, notchWidth, materialWidth, Vector(0, 0, 270), overhang[0], drawSides[2], overhang[3], overhang[3])
+        lines4 = _notch_holes(boxLength, notchWidthY, materialWidth, Vector(0, 0, 270), overhang[0], drawSides[2], overhang[3], overhang[3])
         for line in lines4:
             line.Placement.Base.y += boxLength
             lines.append(line)
     else:
-        lines4 = _notch_line(boxLength, notchWidth, materialWidth, Vector(0, 0, 270), False, False, drawSides[2])
+        lines4 = _notch_line(boxLength, notchWidthY, materialWidth, Vector(0, 0, 270), False, False, drawSides[2])
         lines4.Placement.Base.y += boxLength
         lines.append(lines4)
 
@@ -118,7 +121,7 @@ def draw_top_bottom(doc, partname, materialWidth, boxWidth, boxLength, notchWidt
     return side1
 
 
-def draw_left_right(doc, partname, materialWidth, boxHeight, boxLength, notchWidth, drawSides=[True, True, True, True, True, True]):
+def draw_left_right(doc, partname, materialWidth, boxHeight, boxLength, notchWidthTuple, drawSides=[True, True, True, True, True, True]):
     """Create the left or right part of the box.
 
     Also used to create the compartment separators inside the box.
@@ -127,20 +130,22 @@ def draw_left_right(doc, partname, materialWidth, boxHeight, boxLength, notchWid
     ----------
     - drawSides = [top, bottom, left, right, front, back]
     """
-    line1 = _notch_line(boxLength, notchWidth, materialWidth, Vector(0, 270, 90), drawSides[4], drawSides[5], drawSides[1])
+    notchWidthY = notchWidthTuple[1]
+    notchWidthZ = notchWidthTuple[2]
+    line1 = _notch_line(boxLength, notchWidthY, materialWidth, Vector(0, 270, 90), drawSides[4], drawSides[5], drawSides[1])
     if drawSides[1]:
         line1.Placement.Base.z += materialWidth
 
-    line2 = _notch_line(boxHeight, notchWidth, materialWidth, Vector(90, 90, 90), drawSides[1], drawSides[0], drawSides[4])
+    line2 = _notch_line(boxHeight, notchWidthZ, materialWidth, Vector(90, 90, 90), drawSides[1], drawSides[0], drawSides[4])
     if drawSides[4]:
         line2.Placement.Base.y += materialWidth
 
-    line3 = _notch_line(boxLength, notchWidth, materialWidth, Vector(0, 90, 90), drawSides[4], drawSides[5], drawSides[0])
+    line3 = _notch_line(boxLength, notchWidthY, materialWidth, Vector(0, 90, 90), drawSides[4], drawSides[5], drawSides[0])
     line3.Placement.Base.z += boxHeight
     if drawSides[0]:
         line3.Placement.Base.z -= materialWidth
 
-    line4 = _notch_line(boxHeight, notchWidth, materialWidth, Vector(90, 270, 90), drawSides[1], drawSides[0], drawSides[5])
+    line4 = _notch_line(boxHeight, notchWidthZ, materialWidth, Vector(90, 270, 90), drawSides[1], drawSides[0], drawSides[5])
     line4.Placement.Base.y += boxLength
     if drawSides[5]:
         line4.Placement.Base.y -= materialWidth
@@ -151,21 +156,23 @@ def draw_left_right(doc, partname, materialWidth, boxHeight, boxLength, notchWid
     return side3
 
 
-def draw_front_back(doc, partname, materialWidth, boxWidth, boxHeight, notchWidth, drawSides=[True, True, True, True, True, True]):
+def draw_front_back(doc, partname, materialWidth, boxWidth, boxHeight, notchWidthTuple, drawSides=[True, True, True, True, True, True]):
     """Create the front or back part of the box."""
-    line1 = _notch_line(boxWidth, notchWidth, materialWidth, Vector(270, 0, 0), False, False, drawSides[1])
+    notchWidthX = notchWidthTuple[0]
+    notchWidthZ = notchWidthTuple[2]
+    line1 = _notch_line(boxWidth, notchWidthX, materialWidth, Vector(270, 0, 0), False, False, drawSides[1])
     if drawSides[1]:
         line1.Placement.Base.z += materialWidth
 
-    line2 = _notch_line(boxHeight, notchWidth, materialWidth, Vector(90, 0, 270), drawSides[0], drawSides[1], drawSides[2])
+    line2 = _notch_line(boxHeight, notchWidthZ, materialWidth, Vector(90, 0, 270), drawSides[0], drawSides[1], drawSides[2])
     line2.Placement.Base.z += boxHeight
 
-    line3 = _notch_line(boxWidth, notchWidth, materialWidth, Vector(90, 0, 0), False, False, drawSides[0])
+    line3 = _notch_line(boxWidth, notchWidthX, materialWidth, Vector(90, 0, 0), False, False, drawSides[0])
     line3.Placement.Base.z += boxHeight
     if drawSides[0]:
         line3.Placement.Base.z -= materialWidth
 
-    line4 = _notch_line(boxHeight, notchWidth, materialWidth, Vector(90, 0, 90), drawSides[1], drawSides[0], drawSides[3])
+    line4 = _notch_line(boxHeight, notchWidthZ, materialWidth, Vector(90, 0, 90), drawSides[1], drawSides[0], drawSides[3])
     line4.Placement.Base.x += boxWidth
 
     doc.recompute()
@@ -308,7 +315,7 @@ def create_compartment(box,
                        direction,
                        offset,
                        materialWidth,
-                       notchWidth,
+                       notchWidthTuple,
                        drawSides=[True, True, True, True, True, True],
                        boxsize=Vector(0, 0, 0)):
     try:
@@ -318,6 +325,9 @@ def create_compartment(box,
             'Could not get a document where to create the compartment: {}'.format(e))
         return
 
+    notchWidthX = notchWidthTuple[0]
+    notchWidthY = notchWidthTuple[1]
+    notchWidthZ = notchWidthTuple[2]
     cpos = direction * offset
     mybox = None
     if len(box) == 1 and hasattr(box[0], 'Links'):
@@ -341,11 +351,11 @@ def create_compartment(box,
         if boxsize.z == 0 or boxsize.y == 0:
             app.Console.PrintError("select a box first !\n")
             return
-        compartment = draw_left_right(doc, 'compartmentX' + str(offset), materialWidth, boxsize.z, boxsize.y, notchWidth, drawSides)
+        compartment = draw_left_right(doc, 'compartmentX' + str(offset), materialWidth, boxsize.z, boxsize.y, notchWidthTuple, drawSides)
         if drawSides[4] or drawSides[5]:
-            holes += _draw_holes(boxsize.y, notchWidth, materialWidth, Vector(0, 0, 90))
+            holes += _draw_holes(boxsize.y, notchWidthY, materialWidth, Vector(0, 0, 90))
         if drawSides[2] or drawSides[3]:
-            holes += _draw_holes(boxsize.z, notchWidth, materialWidth, Vector(90, 0, 90))
+            holes += _draw_holes(boxsize.z, notchWidthZ, materialWidth, Vector(90, 0, 90))
 
         for h in holes:
             h.Placement.Base.x += offset + materialWidth
@@ -356,16 +366,16 @@ def create_compartment(box,
             return
 
         sides = [drawSides[0], drawSides[1], drawSides[4], drawSides[5], drawSides[2], drawSides[3]]
-        compartment = draw_left_right(doc, 'compartmentY' + str(offset), materialWidth, boxsize.z, boxsize.x, notchWidth, sides)
+        compartment = draw_left_right(doc, 'compartmentY' + str(offset), materialWidth, boxsize.z, boxsize.x, notchWidthTuple, sides)
         doc.recompute()
         Draft.rotate([compartment], 270.0, Vector(0, 0, 0), axis=Vector(0.0, 0.0, 1.0), copy=False)
         doc.recompute()
         Draft.move([compartment], Vector(0, materialWidth, 0), copy=False)
         doc.recompute()
         if drawSides[0] or drawSides[1]:
-            holes += _draw_holes(boxsize.x, notchWidth, materialWidth, Vector(0, 0, 0))
+            holes += _draw_holes(boxsize.x, notchWidthX, materialWidth, Vector(0, 0, 0))
         if drawSides[2] or drawSides[3]:
-            holes += _draw_holes(boxsize.z, notchWidth, materialWidth, Vector(0, 270, 0))
+            holes += _draw_holes(boxsize.z, notchWidthZ, materialWidth, Vector(0, 270, 0))
 
         for h in holes:
             h.Placement.Base.y += offset
@@ -376,16 +386,16 @@ def create_compartment(box,
             return
 
         sides = [drawSides[2], drawSides[3], drawSides[0], drawSides[1], drawSides[4], drawSides[5]]
-        compartment = draw_left_right(doc, 'compartmentZ' + str(offset), materialWidth, boxsize.x, boxsize.y, notchWidth, sides)
+        compartment = draw_left_right(doc, 'compartmentZ' + str(offset), materialWidth, boxsize.x, boxsize.y, notchWidthTuple, sides)
         doc.recompute()
         Draft.rotate([compartment], 270.0, Vector(boxsize.x, 0, 0), axis=Vector(0.0, 1.0, 0.0), copy=False)
         doc.recompute()
         Draft.move([compartment], Vector(0, 0, boxsize.x), copy=False)
         doc.recompute()
         if drawSides[0] or drawSides[1]:
-            holes += _draw_holes(boxsize.x, notchWidth, materialWidth, Vector(270, 0, 0))
+            holes += _draw_holes(boxsize.x, notchWidthX, materialWidth, Vector(270, 0, 0))
         if drawSides[4] or drawSides[5]:
-            holes += _draw_holes(boxsize.y, notchWidth, materialWidth, Vector(0, 270, 90))
+            holes += _draw_holes(boxsize.y, notchWidthY, materialWidth, Vector(0, 270, 90))
 
         for h in holes:
             h.Placement.Base.z += offset + materialWidth
